@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 # Data: rnaseq_FPKM_UQ_all.csv
-# Method: Apply Cox-PH model (with Ridge penalty) based on PCA transformed features(n=300)
+# Method: Apply Cox-PH model (with Ridge penalty) based on PCA transformed features(n=300), 5-fold 10-repeated CV
 # Date: 12/13/2018
 # Name: Donglei Yin
 
@@ -49,7 +49,7 @@ X_norm=sc.fit_transform(df_tumor_gene)
 # plt.xlabel('Number of Principle Components')
 # plt.ylabel('Proportion of Variance Explained')
 # plt.show();
- 
+
 # select the first 300 PCs and apply the transformation to data:
 
 pca=PCA(n_components=300)
@@ -116,7 +116,7 @@ coxph = CoxPHSurvivalAnalysis()
 grid_values={'alpha': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]}
 
 grid_c = GridSearchCV(coxph, param_grid = grid_values, scoring = None)
-grid_c.fit(data_x, data_y) 
+grid_c.fit(data_x, data_y)
 
 print('Grid best parameter (max c-index): ', grid_c.best_params_)
 print('Grid best score (c-index): ', grid_c.best_score_)
@@ -136,10 +136,6 @@ for train_index, test_index in rkf.split(data_x):
     coxph = CoxPHSurvivalAnalysis(alpha=float(grid_c.best_params_['alpha'])).fit(x_train, y_train)
     c_index_train.append(coxph.score(x_train,y_train))
     c_index_test.append(coxph.score(x_test,y_test))
-    
+
 print("Averaged c-index from 5-fold 10 repeated CV(training): {:.3f}".format(np.mean(c_index_train)))
 print("Averaged c-index from 5-fold 10 repeated CV(test): {:.3f}".format(np.mean(c_index_test)))
-
-
-
-
