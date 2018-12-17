@@ -81,12 +81,6 @@ for idx, item in enumerate(data_y['time_to_event']):
 # Part 2: FastKernelSurvivalSVM
 
 
-import matplotlib
-matplotlib.use('Agg')
-
-import matplotlib.pyplot as plt
-import pandas
-import seaborn as sns
 from sklearn.model_selection import ShuffleSplit, GridSearchCV
 from sksurv.metrics import concordance_index_censored
 from sksurv.svm import FastKernelSurvivalSVM
@@ -101,8 +95,8 @@ def score_survival_model(model, X, y):
     result = concordance_index_censored(y['status'], y['time_to_event'], prediction)
     return result[0]
 
-param_grid = {'alpha': 2. ** np.arange(-12, 13, 2)}
-cv = ShuffleSplit(n_splits=200, train_size=0.5, random_state=0)
+param_grid = {'alpha': [0.001,0.01,0.1,0.5,1,10,100,1000]}
+cv = ShuffleSplit(n_splits=200, test_size=0.3, random_state=0)
 
 kgcv = GridSearchCV(kssvm, param_grid, score_survival_model,
                     n_jobs=4, iid=False, refit=False,
@@ -118,24 +112,34 @@ print(kgcv.best_params_)
 
 
 ## Finally, we retrieve all 200 test scores for each parameter setting and visualize their distribution by box plots.
-def plot_performance(kgcv):
-    n_splits = kgcv.cv.n_splits
-    cv_scores = []
-    for i, params in enumerate(kgcv.cv_results_["params"]):
-        validation_scores = np.empty(n_splits, dtype=float)
-        for j in range(n_splits):
-            validation_scores[j] = kgcv.cv_results_["split%d_test_score" % j][i]
-        name = "%.5f" % params["alpha"]
-        cv_scores.append((name, validation_scores))
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style("whitegrid")
 
-    sns.boxplot(pd.DataFrame.from_items(cv_scores))
+
+def plot_performance(gcv):
+    n_splits = gcv.cv.n_splits
+    cv_scores = {"alpha": [], "test_score": [], "split": []}
+    order = []
+    for i, params in enumerate(gcv.cv_results_["params"]):
+        name = "%.5f" % params["alpha"]
+        order.append(name)
+        for j in range(n_splits):
+            vs = gcv.cv_results_["split%d_test_score" % j][i]
+            cv_scores["alpha"].append(name)
+            cv_scores["test_score"].append(vs)
+            cv_scores["split"].append(j)
+    df = pd.DataFrame.from_dict(cv_scores)
+    _, ax = plt.subplots(figsize=(11, 6))
+    sns.boxplot(x="alpha", y="test_score", data=df, order=order, ax=ax)
     _, xtext = plt.xticks()
     for t in xtext:
         t.set_rotation("vertical")
 
 plot_performance(kgcv)
 
-plt.savefig('./KSVM_UQ_all.png')
+plt.savefig('KSVM_UQ_all.png',dpi=600,bbox_inches = "tight")
+
 
 
 end=time.time()
