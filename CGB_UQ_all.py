@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Data: rnaseq_FPKM_UQ_all.csv
-# Method: Gradient_Boosting based on all gene features
+# Method: Componentwise Gradient_Boosting based on all gene features
 # Date: 12/16/2018
 # Name: Donglei Yin
 
@@ -76,22 +76,20 @@ for idx, item in enumerate(data_y['time_to_event']):
 # data_y
 # df.groupby('status').count()
 
-# Part 2: Gradient Boosting for Survival Analysis
+# Part 2: Componentwise Gradient Boosting for Survival Analysis
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import ShuffleSplit, GridSearchCV
 
 
 from sksurv.column import encode_categorical
 from sksurv.metrics import concordance_index_censored
-from sksurv.ensemble import GradientBoostingSurvivalAnalysis
+from sksurv.ensemble import ComponentwiseGradientBoostingSurvivalAnalysis
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ## create estimator
-estimator = GradientBoostingSurvivalAnalysis(loss='coxph', random_state=0,max_depth=3)
+estimator = ComponentwiseGradientBoostingSurvivalAnalysis(loss='coxph', random_state=0)
 
 ## define a function for evaluating the performance of models during grid search using Harrell's concordance index
 def score_survival_model(model, X, y):

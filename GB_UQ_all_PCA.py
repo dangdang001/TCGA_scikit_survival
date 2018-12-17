@@ -1,9 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Data: rnaseq_FPKM_UQ_all.csv
+# Method: Gradient_Boosting based on PCA tranformed features(p=300)
+# Date: 12/16/2018
+# Name: Donglei Yin
+
 import pandas as pd
 import os
 import numpy as np
 import time
-import matplotlib
-matplotlib.use('Agg')
+
 
 start=time.time()
 
@@ -29,7 +36,7 @@ df_tumor_clinical=df_tumor_clinical.set_index('barcode')
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
+
 
 # standardize gene features before applying PCA, make mean 0 and unit variance
 sc=StandardScaler()
@@ -85,8 +92,7 @@ for idx, item in enumerate(data_y['time_to_event']):
 
 # Part 2: Gradient Boosting for Survival Analysis
 
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 from sklearn.model_selection import ShuffleSplit, GridSearchCV
 
 
@@ -120,3 +126,7 @@ gcv = gcv.fit(data_x, data_y)
 
 print(gcv.best_score_)
 print(gcv.best_params_)
+
+end=time.time()
+
+print(end-start)
